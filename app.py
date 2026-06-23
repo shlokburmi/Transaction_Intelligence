@@ -662,9 +662,10 @@ else:
             "logs": logs_val
         }
         st.session_state.results.insert(0, new_row)
-        st.session_state.selected_transaction_index = 0
+        st.session_state.selected_transaction_index = None
         st.session_state.raw_transaction_input = "" # clear
-        st.query_params["selected"] = "0"
+        if "selected" in st.query_params:
+            del st.query_params["selected"]
         st.toast("Transaction resolved!", icon="✅")
         st.rerun()
 
@@ -972,16 +973,7 @@ else:
     # ---------------------------------------------------------
     if col_drawer_side and active_row is not None:
         with col_drawer_side:
-            # Inject sliding layout margin when drawer is open
-            st.markdown("""
-                <style>
-                @media (min-width: 1200px) {
-                    .block-container {
-                        padding-right: 450px !important;
-                    }
-                }
-                </style>
-            """, unsafe_allow_html=True)
+            # Draw the Details panel inside the native column
             
             with st.container(border=True):
                 st.markdown('<div id="drawer-marker"></div>', unsafe_allow_html=True)
