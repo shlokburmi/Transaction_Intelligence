@@ -328,12 +328,12 @@ if 'current_page' not in st.session_state:
 # ---------------------------------------------------------
 query_params = st.query_params
 
-# Tab selection (default: analytics)
-active_tab = query_params.get("tab", "analytics")
+# Tab selection (default: dashboard)
+active_tab = query_params.get("tab", "dashboard")
 st.session_state.active_tab = active_tab
 
-# Sidebar selection (default: analytics)
-active_menu = query_params.get("menu", "analytics")
+# Sidebar selection (default: dashboard)
+active_menu = query_params.get("menu", "dashboard")
 st.session_state.active_menu = active_menu
 
 # Selected transaction index
@@ -374,13 +374,9 @@ if action_param == "new":
 # Sidebar Rendering
 # ---------------------------------------------------------
 def render_sidebar():
-    active_overview = "active" if active_menu == "overview" else ""
-    active_analytics = "active" if active_menu == "analytics" else ""
-    active_rules = "active" if active_menu == "rules" else ""
+    active_dashboard = "active" if active_menu == "dashboard" else ""
     active_dict = "active" if active_menu == "dict" else ""
     active_logs = "active" if active_menu == "logs" else ""
-    active_settings = "active" if active_menu == "settings" else ""
-    active_support = "active" if active_menu == "support" else ""
 
     render_html(f"""
     <div class="stitch-sidebar">
@@ -389,27 +385,14 @@ def render_sidebar():
             <div class="logo-version">v2.4.0-prod</div>
         </div>
         <div class="sidebar-menu">
-            <a href="?menu=overview&tab={active_tab}" target="_self" class="menu-item {active_overview}">
-                <span class="menu-icon">📄</span> Overview
+            <a href="?menu=dashboard" target="_self" class="menu-item {active_dashboard}">
+                <span class="menu-icon">📊</span> Dashboard
             </a>
-            <a href="?menu=analytics&tab={active_tab}" target="_self" class="menu-item {active_analytics}">
-                <span class="menu-icon">📊</span> Analytics
+            <a href="?menu=dict" target="_self" class="menu-item {active_dict}">
+                <span class="menu-icon">📖</span> Merchant Dictionary
             </a>
-            <a href="?menu=rules&tab={active_tab}" target="_self" class="menu-item {active_rules}">
-                <span class="menu-icon">⚙️</span> Rules Engine
-            </a>
-            <a href="?menu=dict&tab={active_tab}" target="_self" class="menu-item {active_dict}">
-                <span class="menu-icon">📖</span> Dictionary
-            </a>
-            <a href="?menu=logs&tab={active_tab}" target="_self" class="menu-item {active_logs}">
-                <span class="menu-icon">🕒</span> Audit Logs
-            </a>
-        </div>
-        
-        
-        <div class="sidebar-footer">
-            <a href="?menu=settings&tab={active_tab}" target="_self" class="menu-item {active_settings}">
-                <span class="menu-icon">⚙️</span> Settings
+            <a href="?menu=logs" target="_self" class="menu-item {active_logs}">
+                <span class="menu-icon">🕒</span> Processing Logs
             </a>
         </div>
     </div>
@@ -422,22 +405,11 @@ with st.sidebar:
 # Top Header Navbar Rendering
 # ---------------------------------------------------------
 def render_header_navbar():
-    active_class_dashboard = "active" if active_tab == "dashboard" else ""
-    active_class_analytics = "active" if active_tab == "analytics" else ""
-    active_class_history = "active" if active_tab == "history" else ""
-    active_class_settings = "active" if active_tab == "settings" else ""
-
     render_html(f"""
     <div class="top-navbar">
         <div class="navbar-title-section">
             <h2 class="navbar-title">Transaction Intelligence Engine</h2>
             <span class="navbar-subtitle">AI-powered Merchant Intelligence for Banking Transactions</span>
-        </div>
-        <div class="navbar-tabs">
-            <a href="?tab=dashboard&menu={active_menu}" target="_self" class="nav-tab {active_class_dashboard}">Dashboard</a>
-            <a href="?tab=analytics&menu={active_menu}" target="_self" class="nav-tab {active_class_analytics}">Analytics</a>
-            <a href="?tab=history&menu={active_menu}" target="_self" class="nav-tab {active_class_history}">History</a>
-            <a href="?tab=settings&menu={active_menu}" target="_self" class="nav-tab {active_class_settings}">Settings</a>
         </div>
         <div class="navbar-icons">
             <div class="nav-icon-bell">
@@ -454,65 +426,7 @@ render_header_navbar()
 # Page Router & Content Panels
 # ---------------------------------------------------------
 
-if active_menu == "overview" or active_tab == "dashboard":
-    st.markdown("### System Overview & Performance Summary")
-    
-    col_ov1, col_ov2 = st.columns(2)
-    with col_ov1:
-        render_html("""
-        <div class="stitch-card">
-            <h4 class="card-title" style="margin-bottom: 12px;">Pipeline Statistics</h4>
-            <p>High-level metrics mapping out the transaction resolution rates across the 4 stages.</p>
-            <ul>
-                <li><b>Dictionary Resolution</b>: 59.0% of total volume</li>
-                <li><b>Regex Resolution</b>: 21.8% of total volume</li>
-                <li><b>Fuzzy Resolution</b>: 8.7% of total volume</li>
-                <li><b>LLM Fallback Resolution</b>: 10.5% of total volume</li>
-            </ul>
-        </div>
-        """)
-        
-    with col_ov2:
-        render_html("""
-        <div class="stitch-card">
-            <h4 class="card-title" style="margin-bottom: 12px;">System Connection Status</h4>
-            <div style="background-color: #ECFDF5; border: 1px solid #10B981; border-radius: 6px; padding: 12px; margin-bottom: 10px;">
-                <span style="color:#059669; font-weight: 600;">✅ Groq API Gateway Connection established</span>
-            </div>
-            <div style="background-color: #ECFDF5; border: 1px solid #10B981; border-radius: 6px; padding: 12px;">
-                <span style="color:#059669; font-weight: 600;">✅ Local dictionary cache: 156 keys active</span>
-            </div>
-        </div>
-        """)
-
-elif active_menu == "rules":
-    st.markdown("### Confidence Scoring Strategy")
-    st.markdown("The system computes confidence scores deterministically using predefined base scores, match quality weights, and validation bonuses. These are configured in `src/config.py` to ensure matching behavior is consistent and fully explainable.")
-    
-    from src.config import CONFIDENCE_BASE_SCORES, MATCH_QUALITY_WEIGHTS, VALIDATION_WEIGHTS
-    
-    col_r1, col_r2 = st.columns(2)
-    with col_r1:
-        st.info("**🎯 Base Confidence Scores**")
-        st.markdown("Base score awarded based on the resolution tier:")
-        for method, score in CONFIDENCE_BASE_SCORES.items():
-            st.write(f"- **{method}**: `{score}%` base confidence")
-            
-    with col_r2:
-        st.info("**💡 Factor Quality & Validation Bonuses**")
-        st.markdown("Adjustments added to the base score during resolution (capped at 99%):")
-        
-        st.markdown("**Match Quality Weights**")
-        for key, val in MATCH_QUALITY_WEIGHTS.items():
-            name = key.replace("_", " ").title()
-            st.write(f"- {name}: `+{val}%` bonus")
-            
-        st.markdown("**Validation Bonuses**")
-        for key, val in VALIDATION_WEIGHTS.items():
-            name = key.replace("_", " ").title()
-            st.write(f"- {name}: `+{val}%` bonus")
-
-elif active_menu == "dict":
+if active_menu == "dict":
     st.markdown("### Merchant Lookup Dictionary")
     st.markdown("Search or browse our curated alias mapping directory. Matches found here are resolved instantly via our high-priority Tier 1 Dictionary Matcher.")
     
@@ -535,8 +449,8 @@ elif active_menu == "dict":
         
     st.dataframe(pd.DataFrame(dict_data), use_container_width=True, hide_index=True, height=450)
 
-elif active_menu == "logs" or active_tab == "history":
-    st.markdown("### System Audit Logs")
+elif active_menu == "logs":
+    st.markdown("### Processing Logs")
     st.markdown("Real-time logging output from the active Transaction Intelligence hybrid resolution pipeline:")
     
     log_file_path = Path(__file__).resolve().parent / "logs" / "pipeline.log"
@@ -549,25 +463,6 @@ elif active_menu == "logs" or active_tab == "history":
         st.code(recent_logs, language="text")
     else:
         st.info("No active pipeline log file found.")
-
-elif active_menu == "settings" or active_tab == "settings":
-    st.markdown("### System Information & Settings")
-    st.markdown("System architecture parameters and pipeline configuration profiles. These parameters are defined in `src/config.py` to ensure deterministic production behavior.")
-    
-    # Read-only configuration review cards
-    col1, col2 = st.columns(2)
-    with col1:
-        st.info("**Core Engine Configuration**")
-        st.write("- **System Version**: `v2.4.0-prod` (Stitch Reconstruction)")
-        st.write("- **Active LLM Model**: `llama-3.3-70b-versatile` (Deterministic, Temp: 0.0)")
-        st.write("- **Hybrid Pipeline**: `Dictionary (Tier 1) → Regex (Tier 2) → RapidFuzz (Tier 3) → Groq LLM (Tier 4)`")
-        st.write("- **Resolution Cache**: `Active` (In-memory cache per pipeline session)")
-    with col2:
-        st.info("**Heuristics & Tuning Parameters**")
-        st.write("- **RapidFuzz Similarity Threshold**: `85%` (Acceptance boundary for fuzzy matches)")
-        st.write("- **Min Char Length for Fuzzy Match**: `4 chars` (Avoids noisy short matches)")
-        st.write("- **Confidence Model**: `Base Match Score + Quality Weight + Validation Bonus` (Deterministic, Capped at 99%)")
-        st.write("- **LLM Fallback Max Retries**: `2` (Exponential backoff retry policy)")
 
 
 
