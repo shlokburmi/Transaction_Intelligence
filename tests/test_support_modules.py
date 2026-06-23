@@ -58,4 +58,11 @@ def test_get_location_for_txn():
     assert get_location_for_txn("CHE CLOTHING") == "Chennai, IN"
     assert get_location_for_txn("RELIANCE FRESH IN") == "Mumbai, IN"
     assert get_location_for_txn("JUST CAFE") == "Online"
+    assert get_location_for_txn("CHAAYOS CONNAUGHT PLACE") == "Delhi, IN"
+    assert get_location_for_txn("NIC ICE CREAM BANDRA") == "Mumbai, IN"
+    assert get_location_for_txn("NIC ICE CREAM KORAMANGALA") == "Bangalore, IN"
+    assert get_location_for_txn("ZEPTO GACHIBOWLI") == "Hyderabad, IN"
+    assert get_location_for_txn("PUNE CAFE HINJEWADI") == "Pune, IN"
+    assert get_location_for_txn("BLUE TOKAI PARK STREET") == "Kolkata, IN"
+
 

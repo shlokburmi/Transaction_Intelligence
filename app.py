@@ -113,19 +113,24 @@ def get_location_for_txn(raw_text: str) -> str:
         return "Dallas, TX"
     elif re.search(r'\b(?:IL|CHICAGO)\b', raw_upper):
         return "Chicago, IL"
-    elif re.search(r'\b(?:MUMBAI|MUM|BOMBAY)\b', raw_upper):
+    elif re.search(r'\b(?:MUMBAI|MUM|BOMBAY|BANDRA|ANDHERI|COLABA|WORLI|NARIMAN\s+POINT|POWAI|THANE|NAVI\s+MUMBAI)\b', raw_upper):
         return "Mumbai, IN"
-    elif re.search(r'\b(?:BANGALORE|BLR|BENGALURU)\b', raw_upper):
+    elif re.search(r'\b(?:BANGALORE|BLR|BENGALURU|KORAMANGALA|INDIRANAGAR|WHITEFIELD|HSR\s*(?:LAYOUT)?|JAYANAGAR|JP\s+NAGAR|MARATHAHALLI|MALLESHWARAM|HEBBAL)\b', raw_upper):
         return "Bangalore, IN"
-    elif re.search(r'\b(?:DELHI|DEL)\b', raw_upper):
+    elif re.search(r'\b(?:DELHI|DEL|CONNAUGHT\s+PLACE|KAROL\s+BAGH|NOIDA|GURGAON|GURUGRAM|SAKET|HAUZ\s+KHAS|DWARKA|VASANT\s+KUNJ|CHANDNI\s+CHOWK)\b', raw_upper):
         return "Delhi, IN"
-    elif re.search(r'\b(?:HYDERABAD|HYD)\b', raw_upper):
+    elif re.search(r'\b(?:HYDERABAD|HYD|GACHIBOWLI|HITEC\s+CITY|MADHAPUR|SECUNDERABAD|JUBILEE\s+HILLS|BANJARA\s+HILLS)\b', raw_upper):
         return "Hyderabad, IN"
-    elif re.search(r'\b(?:CHENNAI|CHE|MAS)\b', raw_upper):
+    elif re.search(r'\b(?:CHENNAI|CHE|MAS|ADYAR|VELACHERY|T\s+NAGAR|MYLAPORE|NUNGAMBAKKAM|OMR)\b', raw_upper):
         return "Chennai, IN"
+    elif re.search(r'\b(?:PUNE|HINJEWADI|KOREGAON\s+PARK|VIMAN\s+NAGAR|BANER)\b', raw_upper):
+        return "Pune, IN"
+    elif re.search(r'\b(?:KOLKATA|CALCUTTA|SALT\s+LAKE|PARK\s+STREET|HOWRAH)\b', raw_upper):
+        return "Kolkata, IN"
     elif re.search(r'\b(?:INDIA|IN)\b', raw_upper):
         return "Mumbai, IN"
     return "Online"
+
 
 
 # Helper to generate trace logs
