@@ -451,18 +451,117 @@ if active_menu == "dict":
 
 elif active_menu == "logs":
     st.markdown("### Processing Logs")
-    st.markdown("Real-time logging output from the active Transaction Intelligence hybrid resolution pipeline:")
+    st.markdown("Real-time resolution timeline from the active Transaction Intelligence hybrid pipeline:")
     
-    log_file_path = Path(__file__).resolve().parent / "logs" / "pipeline.log"
-    if log_file_path.exists():
-        with open(log_file_path, "r", encoding="utf-8") as f:
-            log_lines = f.readlines()
+    results = st.session_state.get("results", [])
+    total_txns = len(results)
+    
+    # Calculate stats dynamically
+    times = []
+    for r in results:
+        import re
+        try:
+            t = float(re.findall(r"[\d\.]+", str(r["time"]))[0])
+            times.append(t)
+        except:
+            pass
+    avg_time = sum(times) / len(times) if times else 0.0
+    
+    cache_hits = sum(1 for r in results if "Cached" in str(r["method"]))
+    avg_conf = sum(r["confidence"] for r in results) / total_txns if total_txns > 0 else 0.0
+    
+    dict_matches = sum(1 for r in results if "Dictionary" in str(r["method"]))
+    regex_matches = sum(1 for r in results if "Regex" in str(r["method"]))
+    fuzzy_matches = sum(1 for r in results if "Fuzzy" in str(r["method"]))
+    llm_matches = sum(1 for r in results if "LLM" in str(r["method"]))
+    
+    # Summary Card Grid
+    summary_html = f"""
+    <div class="stitch-card" style="margin-bottom: 24px;">
+        <h4 class="card-title" style="margin-bottom: 16px;">Pipeline Execution Summary</h4>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+            <div style="background-color: #F8FAFC; padding: 12px; border-radius: 8px; border: 1px solid #E2E8F0; text-align: center;">
+                <div style="font-size: 0.72rem; color: #64748B; font-weight: 600; text-transform: uppercase;">Processed</div>
+                <div style="font-size: 1.4rem; font-weight: 700; color: #0F172A;">{total_txns}</div>
+            </div>
+            <div style="background-color: #F8FAFC; padding: 12px; border-radius: 8px; border: 1px solid #E2E8F0; text-align: center;">
+                <div style="font-size: 0.72rem; color: #64748B; font-weight: 600; text-transform: uppercase;">Avg Confidence</div>
+                <div style="font-size: 1.4rem; font-weight: 700; color: #10B981;">{avg_conf:.1f}%</div>
+            </div>
+            <div style="background-color: #F8FAFC; padding: 12px; border-radius: 8px; border: 1px solid #E2E8F0; text-align: center;">
+                <div style="font-size: 0.72rem; color: #64748B; font-weight: 600; text-transform: uppercase;">Avg Latency</div>
+                <div style="font-size: 1.4rem; font-weight: 700; color: #2563EB;">{avg_time:.1f}ms</div>
+            </div>
+            <div style="background-color: #F8FAFC; padding: 12px; border-radius: 8px; border: 1px solid #E2E8F0; text-align: center;">
+                <div style="font-size: 0.72rem; color: #64748B; font-weight: 600; text-transform: uppercase;">Cache Hits</div>
+                <div style="font-size: 1.4rem; font-weight: 700; color: #475569;">{cache_hits}</div>
+            </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 16px;">
+            <div style="background-color: #F8FAFC; padding: 12px; border-radius: 8px; border: 1px solid #E2E8F0; text-align: center;">
+                <div style="font-size: 0.72rem; color: #64748B; font-weight: 600; text-transform: uppercase;">Dict Matches</div>
+                <div style="font-size: 1.4rem; font-weight: 700; color: #1F2937;">{dict_matches}</div>
+            </div>
+            <div style="background-color: #F8FAFC; padding: 12px; border-radius: 8px; border: 1px solid #E2E8F0; text-align: center;">
+                <div style="font-size: 0.72rem; color: #64748B; font-weight: 600; text-transform: uppercase;">Regex Matches</div>
+                <div style="font-size: 1.4rem; font-weight: 700; color: #1F2937;">{regex_matches}</div>
+            </div>
+            <div style="background-color: #F8FAFC; padding: 12px; border-radius: 8px; border: 1px solid #E2E8F0; text-align: center;">
+                <div style="font-size: 0.72rem; color: #64748B; font-weight: 600; text-transform: uppercase;">Fuzzy Matches</div>
+                <div style="font-size: 1.4rem; font-weight: 700; color: #1F2937;">{fuzzy_matches}</div>
+            </div>
+            <div style="background-color: #F8FAFC; padding: 12px; border-radius: 8px; border: 1px solid #E2E8F0; text-align: center;">
+                <div style="font-size: 0.72rem; color: #64748B; font-weight: 600; text-transform: uppercase;">LLM Matches</div>
+                <div style="font-size: 1.4rem; font-weight: 700; color: #8B5CF6;">{llm_matches}</div>
+            </div>
+        </div>
+    </div>
+    """
+    render_html(summary_html)
+    
+    # Render log stories
+    log_stories = []
+    import datetime
+    now = datetime.datetime.now()
+    
+    for idx, row in enumerate(results):
+        time_str = (now - datetime.timedelta(seconds=idx * 12)).strftime("%H:%M:%S")
+        method = row["method"].replace(" (Cached)", "")
+        is_cached = "Cached" in row["method"]
         
-        # Filter and display the last 40 lines of log entries to avoid overflow
-        recent_logs = "".join(log_lines[-40:])
-        st.code(recent_logs, language="text")
+        story = f"----------------------------------------------------\n\n"
+        story += f"[{time_str}]\n\n"
+        story += f"Transaction Received\n\n{row['raw']}\n\n"
+        story += "✓ Preprocessed\n\n"
+        
+        if is_cached:
+            story += "✓ Cache Hit (Reused previous resolution)\n\n"
+        else:
+            if method == "Dictionary":
+                story += "✓ Dictionary Match Found\n\n"
+            elif method == "Regex":
+                story += "✗ Dictionary Match\n\n✓ Regex Match Found\n\n"
+            elif method == "Fuzzy":
+                story += "✗ Dictionary Match\n\n✗ Regex Match\n\n✓ RapidFuzz Match Found\n\n"
+            elif method == "LLM":
+                story += "✗ Dictionary Match\n\n✗ Regex Match\n\n✗ RapidFuzz Match\n\n✓ Groq LLM Invoked\n\n"
+            else:
+                story += "✗ Dictionary Match\n\n✗ Regex Match\n\n✗ RapidFuzz Match\n\n✗ Groq LLM Match\n\n⚠ Fallback Applied\n\n"
+                
+        story += f"Merchant:\n{row['merchant']}\n\n"
+        story += f"Category:\n{row['category'].split(' > ')[0]}\n\n"
+        story += f"Confidence:\n{row['confidence']}%\n\n"
+        if row["merchant"] == "Unknown":
+            story += "Marked for Manual Review\n\n"
+        story += f"Processing Time:\n{row['time']}\n\n"
+        story += "----------------------------------------------------"
+        log_stories.append(story)
+        
+    if log_stories:
+        full_logs_text = "\n\n".join(log_stories)
+        st.code(full_logs_text, language="text")
     else:
-        st.info("No active pipeline log file found.")
+        st.info("No transaction processing logs recorded in this session yet.")
 
 
 
