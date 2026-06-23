@@ -662,10 +662,9 @@ else:
             "logs": logs_val
         }
         st.session_state.results.insert(0, new_row)
-        st.session_state.selected_transaction_index = None
+        st.session_state.selected_transaction_index = 0
         st.session_state.raw_transaction_input = "" # clear
-        if "selected" in st.query_params:
-            del st.query_params["selected"]
+        st.query_params["selected"] = "0"
         st.toast("Transaction resolved!", icon="✅")
         st.rerun()
 
