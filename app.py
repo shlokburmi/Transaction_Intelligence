@@ -842,10 +842,10 @@ else:
     # ---------------------------------------------------------
     has_drawer = selected_idx is not None
     
+    col_tbl_main = st.container()
     if has_drawer:
-        col_tbl_main, col_drawer_side = st.columns([3, 1.25])
+        col_drawer_side = st.container()
     else:
-        col_tbl_main = st.container()
         col_drawer_side = None
 
     with col_tbl_main:
