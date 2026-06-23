@@ -101,30 +101,32 @@ def render_pipeline_flow(method):
 
 # Helper to extract location from transaction text
 def get_location_for_txn(raw_text: str) -> str:
+    import re
     raw_upper = str(raw_text).upper()
-    if "SFO" in raw_upper or " CA" in raw_upper:
+    if re.search(r'\b(?:SFO|CA)\b', raw_upper):
         return "San Francisco, CA"
-    elif "WA" in raw_upper or "AMZN" in raw_upper or "SEATTLE" in raw_upper:
+    elif re.search(r'\b(?:WA|SEATTLE)\b', raw_upper) or "AMZN" in raw_upper:
         return "Seattle, WA"
-    elif "NY" in raw_upper or "NEW YORK" in raw_upper:
+    elif re.search(r'\b(?:NY|NEW\s+YORK)\b', raw_upper):
         return "New York, NY"
-    elif "TX" in raw_upper or "DALLAS" in raw_upper:
+    elif re.search(r'\b(?:TX|DALLAS)\b', raw_upper):
         return "Dallas, TX"
-    elif "IL" in raw_upper or "CHICAGO" in raw_upper:
+    elif re.search(r'\b(?:IL|CHICAGO)\b', raw_upper):
         return "Chicago, IL"
-    elif "MUMBAI" in raw_upper or "MUM" in raw_upper or "BOMBAY" in raw_upper:
+    elif re.search(r'\b(?:MUMBAI|MUM|BOMBAY)\b', raw_upper):
         return "Mumbai, IN"
-    elif "BANGALORE" in raw_upper or "BLR" in raw_upper or "BENGALURU" in raw_upper:
+    elif re.search(r'\b(?:BANGALORE|BLR|BENGALURU)\b', raw_upper):
         return "Bangalore, IN"
-    elif "DELHI" in raw_upper or "DEL" in raw_upper:
+    elif re.search(r'\b(?:DELHI|DEL)\b', raw_upper):
         return "Delhi, IN"
-    elif "HYDERABAD" in raw_upper or "HYD" in raw_upper:
+    elif re.search(r'\b(?:HYDERABAD|HYD)\b', raw_upper):
         return "Hyderabad, IN"
-    elif "CHENNAI" in raw_upper or "CHE" in raw_upper or "MAS" in raw_upper:
+    elif re.search(r'\b(?:CHENNAI|CHE|MAS)\b', raw_upper):
         return "Chennai, IN"
-    elif "INDIA" in raw_upper or " IN" in raw_upper:
+    elif re.search(r'\b(?:INDIA|IN)\b', raw_upper):
         return "Mumbai, IN"
     return "Online"
+
 
 # Helper to generate trace logs
 def generate_transaction_logs(raw, merchant, category, method, confidence, time_val, reason):

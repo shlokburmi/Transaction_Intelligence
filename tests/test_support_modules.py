@@ -42,3 +42,20 @@ def test_confidence_scorer():
     score5 = ConfidenceScorer.calculate("Fallback")
     # 25 + 0 + 0 = 25
     assert score5 == 25
+
+def test_get_location_for_txn():
+    from app import get_location_for_txn
+    assert get_location_for_txn("THEOBROMA CAFE DELHI") == "Delhi, IN"
+    assert get_location_for_txn("KFC ONLINE DELIVERY") == "Online"
+    assert get_location_for_txn("UBER *TRIP SFO TO PA 11/04 CA") == "San Francisco, CA"
+    assert get_location_for_txn("AMZN Mktp US*2J8A39R Anzn.com/billWA") == "Seattle, WA"
+    assert get_location_for_txn("TST* LOCAL COFFEE SHOP NY") == "New York, NY"
+    assert get_location_for_txn("SOME RANDOM TX SHOP") == "Dallas, TX"
+    assert get_location_for_txn("CHICAGO CHICKEN") == "Chicago, IL"
+    assert get_location_for_txn("MCDONALDS MUMBAI") == "Mumbai, IN"
+    assert get_location_for_txn("ZEPTO BLR") == "Bangalore, IN"
+    assert get_location_for_txn("HYD BIRYANI HOUSE") == "Hyderabad, IN"
+    assert get_location_for_txn("CHE CLOTHING") == "Chennai, IN"
+    assert get_location_for_txn("RELIANCE FRESH IN") == "Mumbai, IN"
+    assert get_location_for_txn("JUST CAFE") == "Online"
+
