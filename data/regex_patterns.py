@@ -23,6 +23,19 @@ SUFFIX_PATTERN = re.compile(
     re.IGNORECASE
 )
 
+# 2b. Domain Suffixes and Prefix (e.g. WWW. or .COM, .CO.IN, .ORG)
+# Strips common prefixes like "WWW." and suffixes like ".COM", ".CO.IN", ".IN", etc.
+DOMAIN_PREFIX_PATTERN = re.compile(
+    r"^(?:HTTPS?:\/\/)(?:WWW\.)?|^(?:WWW\.)",
+    re.IGNORECASE
+)
+
+DOMAIN_SUFFIX_PATTERN = re.compile(
+    r"\.(?:[A-Z]{2,4}\.[A-Z]{2}|[A-Z]{2,6})\b",
+    re.IGNORECASE
+)
+
+
 # 3. Merchant-Specific Extraction Patterns (Tier 2)
 # These extract the merchant name even if there is surrounding noise.
 # We map the regex group match to the canonical merchant name.

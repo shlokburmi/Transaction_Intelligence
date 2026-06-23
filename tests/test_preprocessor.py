@@ -38,3 +38,13 @@ def test_pure_noise_fallback():
     # If cleaning removes everything, it should fall back to normalized
     result = Preprocessor.process("***12345***")
     assert result["cleaned"] == "***12345***"
+
+def test_domain_removal():
+    assert Preprocessor.process("NETFLIX.COM")["cleaned"] == "NETFLIX"
+    assert Preprocessor.process("AMAZON.CO.IN")["cleaned"] == "AMAZON"
+    assert Preprocessor.process("GOOGLE.IN")["cleaned"] == "GOOGLE"
+    assert Preprocessor.process("WWW.SPOTIFY.COM")["cleaned"] == "SPOTIFY"
+    assert Preprocessor.process("HTTPS://WWW.NETFLIX.COM")["cleaned"] == "NETFLIX"
+    assert Preprocessor.process("NETFLIX.COM MUMBAI")["cleaned"] == "NETFLIX MUMBAI"
+
+

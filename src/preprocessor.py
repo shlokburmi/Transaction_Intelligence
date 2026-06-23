@@ -10,7 +10,7 @@ Normalizes raw transaction strings and produces three versions:
 import re
 from typing import Dict, Any
 from src.logger import get_logger
-from data.regex_patterns import PROCESSOR_PREFIX_PATTERN, SUFFIX_PATTERN
+from data.regex_patterns import PROCESSOR_PREFIX_PATTERN, SUFFIX_PATTERN, DOMAIN_PREFIX_PATTERN, DOMAIN_SUFFIX_PATTERN
 
 logger = get_logger(__name__)
 
@@ -58,6 +58,13 @@ class Preprocessor:
         
         # 2. Strip known suffixes (locations, numeric IDs like *2H4XK)
         cleaned = SUFFIX_PATTERN.sub("", cleaned)
+        
+        # 2a. Strip domain prefixes (e.g. WWW., HTTPS://)
+        cleaned = DOMAIN_PREFIX_PATTERN.sub("", cleaned)
+        
+        # 2b. Strip domain suffixes (e.g. .COM, .IN, .CO.IN)
+        cleaned = DOMAIN_SUFFIX_PATTERN.sub("", cleaned)
+
         
         # 3. Remove standalone special characters (but keep internal ones like H&M)
         # This replaces things like " - " or " * " with a space
