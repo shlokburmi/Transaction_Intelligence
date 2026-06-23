@@ -374,10 +374,13 @@ if action_param == "new":
 # Sidebar Rendering
 # ---------------------------------------------------------
 def render_sidebar():
+    active_overview = "active" if active_menu == "overview" else ""
     active_analytics = "active" if active_menu == "analytics" else ""
+    active_rules = "active" if active_menu == "rules" else ""
     active_dict = "active" if active_menu == "dict" else ""
     active_logs = "active" if active_menu == "logs" else ""
     active_settings = "active" if active_menu == "settings" else ""
+    active_support = "active" if active_menu == "support" else ""
 
     render_html(f"""
     <div class="stitch-sidebar">
