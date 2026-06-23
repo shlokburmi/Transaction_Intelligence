@@ -411,9 +411,6 @@ def render_sidebar():
             <a href="?menu=settings&tab={active_tab}" target="_self" class="menu-item {active_settings}">
                 <span class="menu-icon">⚙️</span> Settings
             </a>
-            <a href="?menu=support&tab={active_tab}" target="_self" class="menu-item {active_support}">
-                <span class="menu-icon">❓</span> Support
-            </a>
         </div>
     </div>
     """)
@@ -489,74 +486,90 @@ if active_menu == "overview" or active_tab == "dashboard":
         """)
 
 elif active_menu == "rules":
-    st.markdown("### Rules Configuration Engine")
-    st.markdown("Customize matching weights and thresholds to score resolutions deterministically.")
+    st.markdown("### Confidence Scoring Strategy")
+    st.markdown("The system computes confidence scores deterministically using predefined base scores, match quality weights, and validation bonuses. These are configured in `src/config.py` to ensure matching behavior is consistent and fully explainable.")
     
-    with st.form("rules_sliders"):
-        col_r1, col_r2 = st.columns(2)
-        with col_r1:
-            st.slider("Dictionary Match Base Confidence", 50, 99, 90)
-            st.slider("Regex Match Base Confidence", 50, 99, 82)
-            st.slider("Fuzzy Match Base Confidence", 50, 99, 70)
-        with col_r2:
-            st.slider("LLM Match Base Confidence", 30, 90, 55)
-            st.slider("Fuzzy Similarity Acceptance Threshold (%)", 60, 100, 85)
+    from src.config import CONFIDENCE_BASE_SCORES, MATCH_QUALITY_WEIGHTS, VALIDATION_WEIGHTS
+    
+    col_r1, col_r2 = st.columns(2)
+    with col_r1:
+        st.info("**🎯 Base Confidence Scores**")
+        st.markdown("Base score awarded based on the resolution tier:")
+        for method, score in CONFIDENCE_BASE_SCORES.items():
+            st.write(f"- **{method}**: `{score}%` base confidence")
             
-        submit_rules = st.form_submit_button("Apply Configuration Rules", type="primary")
-        if submit_rules:
-            st.success("Configuration rules saved successfully!")
+    with col_r2:
+        st.info("**💡 Factor Quality & Validation Bonuses**")
+        st.markdown("Adjustments added to the base score during resolution (capped at 99%):")
+        
+        st.markdown("**Match Quality Weights**")
+        for key, val in MATCH_QUALITY_WEIGHTS.items():
+            name = key.replace("_", " ").title()
+            st.write(f"- {name}: `+{val}%` bonus")
+            
+        st.markdown("**Validation Bonuses**")
+        for key, val in VALIDATION_WEIGHTS.items():
+            name = key.replace("_", " ").title()
+            st.write(f"- {name}: `+{val}%` bonus")
 
 elif active_menu == "dict":
     st.markdown("### Merchant Lookup Dictionary")
+    st.markdown("Search or browse our curated alias mapping directory. Matches found here are resolved instantly via our high-priority Tier 1 Dictionary Matcher.")
     
-    col_d1, col_d2 = st.columns([2, 1])
-    with col_d1:
-        st.markdown("##### Search dictionary matches")
-        search_d = st.text_input("Search dictionary...", placeholder="E.g. Starbucks", label_visibility="collapsed")
+    search_d = st.text_input("Search dictionary...", placeholder="Search by alias, canonical merchant, or category...", label_visibility="collapsed")
+    
+    from data.merchant_dictionary import MERCHANT_ALIASES
+    from src.category_mapper import CategoryMapper
+    
+    dict_data = []
+    for alias, merchant in MERCHANT_ALIASES.items():
+        category = CategoryMapper.get_category(merchant) or "Other"
+        dict_data.append({"Alias": alias, "Merchant": merchant, "Category": category})
         
-        # Simple list
-        dict_data = [
-            {"Alias": "SBUX", "Merchant": "Starbucks", "Category": "Dining"},
-            {"Alias": "AMZN", "Merchant": "Amazon", "Category": "Shopping"},
-            {"Alias": "UBER", "Merchant": "Uber", "Category": "Travel"},
-            {"Alias": "KFC", "Merchant": "KFC", "Category": "Dining"},
-            {"Alias": "MCD", "Merchant": "McDonald's", "Category": "Dining"}
-        ]
-        st.dataframe(pd.DataFrame(dict_data), use_container_width=True, hide_index=True)
+    # Sort by Alias alphabetically
+    dict_data = sorted(dict_data, key=lambda x: x["Alias"])
         
-    with col_d2:
-        with st.form("add_dict"):
-            st.markdown("##### Add Alias Mapping")
-            st.text_input("Alias Key (Uppercase)")
-            st.text_input("Canonical Merchant")
-            st.selectbox("Category", ["Shopping", "Dining", "Travel", "Groceries", "Utilities", "Other"])
-            st.form_submit_button("Add Alias Mapping", type="primary")
+    if search_d:
+        q = search_d.lower()
+        dict_data = [d for d in dict_data if q in d["Alias"].lower() or q in d["Merchant"].lower() or q in d["Category"].lower()]
+        
+    st.dataframe(pd.DataFrame(dict_data), use_container_width=True, hide_index=True, height=450)
 
 elif active_menu == "logs" or active_tab == "history":
     st.markdown("### System Audit Logs")
-    st.code("""
-[2026-06-22T22:00:12] INFO: Pipeline initiated.
-[2026-06-22T22:00:15] INFO: Batch processed 55 transactions.
-[2026-06-22T22:00:15] INFO: Dictionary matches: 41, Regex matches: 1, Fuzzy matches: 3, LLM matches: 10
-[2026-06-22T22:01:04] INFO: Injected new alias lookup entry: SBUX -> Starbucks
-[2026-06-22T22:02:18] INFO: Cached hit count resolved: 42
-    """, language="text")
+    st.markdown("Real-time logging output from the active Transaction Intelligence hybrid resolution pipeline:")
+    
+    log_file_path = Path(__file__).resolve().parent / "logs" / "pipeline.log"
+    if log_file_path.exists():
+        with open(log_file_path, "r", encoding="utf-8") as f:
+            log_lines = f.readlines()
+        
+        # Filter and display the last 40 lines of log entries to avoid overflow
+        recent_logs = "".join(log_lines[-40:])
+        st.code(recent_logs, language="text")
+    else:
+        st.info("No active pipeline log file found.")
 
 elif active_menu == "settings" or active_tab == "settings":
-    st.markdown("### System Settings")
-    st.selectbox("Groq LLM Model Version", ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"])
-    st.text_input("Groq API Key Override", type="password")
-    st.button("Clear Resolution Cache")
-
-elif active_menu == "support":
-    st.markdown("### Technical Documentation & Support")
-    st.markdown("""
-    For API configuration issues or lookup overrides, contact Reward360 AI Architecture support.
+    st.markdown("### System Information & Settings")
+    st.markdown("System architecture parameters and pipeline configuration profiles. These parameters are defined in `src/config.py` to ensure deterministic production behavior.")
     
-    **FAQ:**
-    - *How to update the categories database?* Go to the **Dictionary** tab to add alias associations.
-    - *Fuzzy matcher returning weak associations?* Tune the Fuzzy Similarity Sliders in the **Rules Engine**.
-    """)
+    # Read-only configuration review cards
+    col1, col2 = st.columns(2)
+    with col1:
+        st.info("**Core Engine Configuration**")
+        st.write("- **System Version**: `v2.4.0-prod` (Stitch Reconstruction)")
+        st.write("- **Active LLM Model**: `llama-3.3-70b-versatile` (Deterministic, Temp: 0.0)")
+        st.write("- **Hybrid Pipeline**: `Dictionary (Tier 1) → Regex (Tier 2) → RapidFuzz (Tier 3) → Groq LLM (Tier 4)`")
+        st.write("- **Resolution Cache**: `Active` (In-memory cache per pipeline session)")
+    with col2:
+        st.info("**Heuristics & Tuning Parameters**")
+        st.write("- **RapidFuzz Similarity Threshold**: `85%` (Acceptance boundary for fuzzy matches)")
+        st.write("- **Min Char Length for Fuzzy Match**: `4 chars` (Avoids noisy short matches)")
+        st.write("- **Confidence Model**: `Base Match Score + Quality Weight + Validation Bonus` (Deterministic, Capped at 99%)")
+        st.write("- **LLM Fallback Max Retries**: `2` (Exponential backoff retry policy)")
+
+
 
 else:
     # ---------------------------------------------------------
@@ -885,7 +898,8 @@ else:
                             <th>CATEGORY</th>
                             <th>CONFIDENCE</th>
                             <th>METHOD</th>
-                            <th>TIME</th>
+                            <th>REASON</th>
+                            <th>PROCESSING TIME</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -906,14 +920,16 @@ else:
                     if is_bold: cls += " cell-bold"
                     if is_muted: cls += " cell-italic-muted"
                     return f'<td><a class="{cls}" href="?selected={orig_idx}&tab={active_tab}&menu={active_menu}&page={st.session_state.current_page}" target="_self">{content}</a></td>'
-                    
+                
+                method_cls = row['method'].replace(' (Cached)', '').lower()
                 table_html += f"""
                     <tr class="{row_class}">
                         {make_cell(row['raw'])}
                         {make_cell(row['merchant'], is_bold=(m_val != "Unknown Vendor"), is_muted=(m_val == "Unknown Vendor"))}
                         {make_cell(row['category_short'])}
                         <td><a class="cell-link" href="?selected={orig_idx}&tab={active_tab}&menu={active_menu}&page={st.session_state.current_page}" target="_self"><span class="badge-table {badge_cls}">{row['confidence']}%</span></a></td>
-                        <td><a class="cell-link" href="?selected={orig_idx}&tab={active_tab}&menu={active_menu}&page={st.session_state.current_page}" target="_self"><span class="chip-method">{row['method']}</span></a></td>
+                        <td><a class="cell-link" href="?selected={orig_idx}&tab={active_tab}&menu={active_menu}&page={st.session_state.current_page}" target="_self"><span class="chip-method chip-method-{method_cls}">{row['method']}</span></a></td>
+                        {make_cell(row['reason'])}
                         {make_cell(row['time'])}
                     </tr>
                 """
@@ -984,103 +1000,62 @@ else:
                 # Toggle edit panel state
                 if st.session_state.editing_mapping:
                     render_html(f"""
-                    <div class="drawer-header">
-                        <div>
-                            <h4 class="drawer-title">Override Mapping</h4>
-                            <span class="drawer-ref">Ref: TXN-99{selected_idx}-B</span>
-                        </div>
+                conf_color = "#10B981" if conf_val >= 85 else ("#D97706" if conf_val >= 70 else "#EF4444")
+                conf_bg = "#ECFDF5" if conf_val >= 85 else ("#FEF7E0" if conf_val >= 70 else "#FEF2F2")
+                
+                drawer_html = f"""
+                <div class="drawer-header">
+                    <div>
+                        <h4 class="drawer-title">Transaction Details</h4>
+                        <span class="drawer-ref">Ref: TXN-99{selected_idx}-B</span>
                     </div>
-                    """)
-                    
-                    with st.form("edit_drawer_form"):
-                        new_merch = st.text_input("Override Merchant", value=merchant_name)
-                        new_cat = st.selectbox("Override Category", ["Shopping", "Dining", "Travel", "Groceries", "Utilities", "Entertainment", "Other"])
-                        
-                        col_form1, col_form2 = st.columns(2)
-                        with col_form1:
-                            submit_form = st.form_submit_button("Save Mapping", use_container_width=True, type="primary")
-                        with col_form2:
-                            cancel_form = st.form_submit_button("Cancel", use_container_width=True)
-                            
-                        if submit_form:
-                            st.session_state.results[selected_idx]["merchant"] = new_merch
-                            st.session_state.results[selected_idx]["category"] = new_cat
-                            st.session_state.results[selected_idx]["category_short"] = new_cat
-                            st.toast("Lookup alias updated!", icon="💾")
-                            # Redirect back to normal view
-                            st.query_params["selected"] = str(selected_idx)
-                            st.query_params["tab"] = active_tab
-                            st.query_params["menu"] = active_menu
-                            st.query_params["page"] = str(st.session_state.current_page)
-                            st.rerun()
-                        if cancel_form:
-                            # Redirect back to normal view
-                            st.query_params["selected"] = str(selected_idx)
-                            st.query_params["tab"] = active_tab
-                            st.query_params["menu"] = active_menu
-                            st.query_params["page"] = str(st.session_state.current_page)
-                            st.rerun()
-                else:
-                    conf_color = "#10B981" if conf_val >= 85 else ("#D97706" if conf_val >= 70 else "#EF4444")
-                    conf_bg = "#ECFDF5" if conf_val >= 85 else ("#FEF7E0" if conf_val >= 70 else "#FEF2F2")
-                    
-                    drawer_html = f"""
-                    <div class="drawer-header">
-                        <div>
-                            <h4 class="drawer-title">Transaction Details</h4>
-                            <span class="drawer-ref">Ref: TXN-99{selected_idx}-B</span>
-                        </div>
-                        <a href="?selected=&page={st.session_state.current_page}&tab={active_tab}&menu={active_menu}" target="_self" class="drawer-close">✕</a>
+                    <a href="?selected=&page={st.session_state.current_page}&tab={active_tab}&menu={active_menu}" target="_self" class="drawer-close">✕</a>
+                </div>
+                
+                <div class="drawer-section-title">ENRICHMENT OUTPUT</div>
+                <div class="enrichment-card">
+                    <div class="enrichment-row">
+                        <span class="enrichment-label">Original Text</span>
+                        <span class="enrichment-value value-mono">{active_row['raw']}</span>
                     </div>
-                    
-                    <div class="drawer-section-title">ENRICHMENT OUTPUT</div>
-                    <div class="enrichment-card">
-                        <div class="enrichment-row">
-                            <span class="enrichment-label">Original Text</span>
-                            <span class="enrichment-value value-mono">{active_row['raw']}</span>
-                        </div>
-                        <div class="enrichment-row">
-                            <span class="enrichment-label">Normalized</span>
-                            <span class="enrichment-value value-mono">{norm_str}</span>
-                        </div>
-                        <div class="enrichment-row">
-                            <span class="enrichment-label">Cleaned Text</span>
-                            <span class="enrichment-value value-mono">{clean_str}</span>
-                        </div>
-                        <div class="enrichment-row">
-                            <span class="enrichment-label">Merchant</span>
-                            <span class="enrichment-value value-bold">{merchant_name}</span>
-                        </div>
-                        <div class="enrichment-row">
-                            <span class="enrichment-label">Category</span>
-                            <span class="enrichment-value">{category_name}</span>
-                        </div>
-                        <div class="enrichment-row">
-                            <span class="enrichment-label">Location</span>
-                            <span class="enrichment-value">{location_val}</span>
-                        </div>
-                        <div class="enrichment-row">
-                            <span class="enrichment-label">Confidence</span>
-                            <span class="enrichment-value"><span class="badge badge-green" style="color:{conf_color}; background-color:{conf_bg};">{conf_val}%</span></span>
-                        </div>
-                        <div class="enrichment-row">
-                            <span class="enrichment-label">Method</span>
-                            <span class="enrichment-value">{method_val} Match</span>
-                        </div>
-                        <div class="enrichment-row">
-                            <span class="enrichment-label">Time</span>
-                            <span class="enrichment-value">{time_val}</span>
-                        </div>
+                    <div class="enrichment-row">
+                        <span class="enrichment-label">Normalized</span>
+                        <span class="enrichment-value value-mono">{norm_str}</span>
                     </div>
-                    
-                    <div class="drawer-section-title">PROCESSING PIPELINE LOG</div>
-                    <div class="terminal-log"><code>{log_lines}</code></div>
-                    
-                    <div class="drawer-footer">
-                        <a href="?selected={selected_idx}&edit=true&tab={active_tab}&menu={active_menu}&page={st.session_state.current_page}" target="_self" class="btn-edit-mapping">✏️ Edit Mapping</a>
+                    <div class="enrichment-row">
+                        <span class="enrichment-label">Cleaned Text</span>
+                        <span class="enrichment-value value-mono">{clean_str}</span>
                     </div>
-                    """
-                    render_html(drawer_html)
+                    <div class="enrichment-row">
+                        <span class="enrichment-label">Merchant</span>
+                        <span class="enrichment-value value-bold">{merchant_name}</span>
+                    </div>
+                    <div class="enrichment-row">
+                        <span class="enrichment-label">Category</span>
+                        <span class="enrichment-value">{category_name}</span>
+                    </div>
+                    <div class="enrichment-row">
+                        <span class="enrichment-label">Location</span>
+                        <span class="enrichment-value">{location_val}</span>
+                    </div>
+                    <div class="enrichment-row">
+                        <span class="enrichment-label">Confidence</span>
+                        <span class="enrichment-value"><span class="badge badge-green" style="color:{conf_color}; background-color:{conf_bg};">{conf_val}%</span></span>
+                    </div>
+                    <div class="enrichment-row">
+                        <span class="enrichment-label">Method</span>
+                        <span class="enrichment-value">{method_val} Match</span>
+                    </div>
+                    <div class="enrichment-row">
+                        <span class="enrichment-label">Time</span>
+                        <span class="enrichment-value">{time_val}</span>
+                    </div>
+                </div>
+                
+                <div class="drawer-section-title">PROCESSING PIPELINE LOG</div>
+                <div class="terminal-log"><code>{log_lines}</code></div>
+                """
+                render_html(drawer_html)
 
     # ---------------------------------------------------------
     # Analytics Charts (Working mock charts at the bottom)

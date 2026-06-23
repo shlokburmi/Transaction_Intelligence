@@ -683,13 +683,43 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
 
 .chip-method {
     font-size: 0.75rem;
-    font-weight: 500;
+    font-weight: 600;
     color: #475569;
     background-color: #F8FAFC;
     border: 1px solid #E2E8F0;
     padding: 2px 8px;
     border-radius: 9999px;
     display: inline-block;
+}
+
+.chip-method-dictionary {
+    color: #1D4ED8 !important;
+    background-color: #EFF6FF !important;
+    border-color: #BFDBFE !important;
+}
+
+.chip-method-regex {
+    color: #047857 !important;
+    background-color: #ECFDF5 !important;
+    border-color: #A7F3D0 !important;
+}
+
+.chip-method-fuzzy {
+    color: #B45309 !important;
+    background-color: #FFFBEB !important;
+    border-color: #FDE68A !important;
+}
+
+.chip-method-llm {
+    color: #6D28D9 !important;
+    background-color: #F5F3FF !important;
+    border-color: #DDD6FE !important;
+}
+
+.chip-method-fallback {
+    color: #B91C1C !important;
+    background-color: #FEF2F2 !important;
+    border-color: #FECACA !important;
 }
 
 .results-footer {
