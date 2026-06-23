@@ -1,0 +1,33 @@
+# Environment variables (contains API keys — never commit)
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs (generated at runtime)
+logs/
+
+# Generated output (reproducible from input)
+data/transactions_output.csv
+
+# OS files
+.DS_Store
+Thumbs.db
