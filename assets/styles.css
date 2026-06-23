@@ -856,11 +856,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
 
 /* Floating Details Drawer Layout - Responsive Overlay */
 div[data-testid="stVerticalBlockBorderWrapper"]:has(#drawer-marker),
-div[data-testid="stVerticalBlock"]:has(#drawer-marker),
-div[class*="stVerticalBlockBorderWrapper"]:has(#drawer-marker),
-div[class*="stVerticalBlock"]:has(#drawer-marker),
-div[data-testid="stElementContainer"]:has(#drawer-marker),
-div.element-container:has(#drawer-marker) {
+div[class*="stVerticalBlockBorderWrapper"]:has(#drawer-marker) {
     position: fixed !important;
     top: 0 !important;
     right: 0 !important;
@@ -880,11 +876,7 @@ div.element-container:has(#drawer-marker) {
 }
 
 div[data-testid="stVerticalBlockBorderWrapper"]:has(#drawer-marker) > div,
-div[data-testid="stVerticalBlock"]:has(#drawer-marker) > div,
-div[class*="stVerticalBlockBorderWrapper"]:has(#drawer-marker) > div,
-div[class*="stVerticalBlock"]:has(#drawer-marker) > div,
-div[data-testid="stElementContainer"]:has(#drawer-marker) > div,
-div.element-container:has(#drawer-marker) > div {
+div[class*="stVerticalBlockBorderWrapper"]:has(#drawer-marker) > div {
     padding: 24px !important;
     height: 100% !important;
     overflow-y: auto !important;
@@ -902,14 +894,11 @@ div.element-container:has(#drawer-marker) > div {
 
 @media (max-width: 480px) {
     div[data-testid="stVerticalBlockBorderWrapper"]:has(#drawer-marker),
-    div[data-testid="stVerticalBlock"]:has(#drawer-marker),
-    div[class*="stVerticalBlockBorderWrapper"]:has(#drawer-marker),
-    div[class*="stVerticalBlock"]:has(#drawer-marker),
-    div[data-testid="stElementContainer"]:has(#drawer-marker),
-    div.element-container:has(#drawer-marker) {
+    div[class*="stVerticalBlockBorderWrapper"]:has(#drawer-marker) {
         width: 100% !important;
     }
 }
+
 
 
 .drawer-header {
