@@ -44,6 +44,9 @@ def render_pipeline_flow(method):
         {"name": "Output", "key": "Out"}
     ]
     
+    if method:
+        method = method.replace(" (Cached)", "")
+
     states = {}
     if not method:
         for s in steps:
