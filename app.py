@@ -997,9 +997,6 @@ else:
                 clean_str = re.sub(r'\b\d+\b', '', norm_str)
                 clean_str = clean_str.replace("SQ *", "").replace("TST*", "").replace("UBER *", "").replace("AMZN *", "").replace(" * ", " ").strip()
                 
-                # Toggle edit panel state
-                if st.session_state.editing_mapping:
-                    render_html(f"""
                 conf_color = "#10B981" if conf_val >= 85 else ("#D97706" if conf_val >= 70 else "#EF4444")
                 conf_bg = "#ECFDF5" if conf_val >= 85 else ("#FEF7E0" if conf_val >= 70 else "#FEF2F2")
                 
@@ -1009,7 +1006,7 @@ else:
                         <h4 class="drawer-title">Transaction Details</h4>
                         <span class="drawer-ref">Ref: TXN-99{selected_idx}-B</span>
                     </div>
-                    <a href="?selected=&page={st.session_state.current_page}&tab={active_tab}&menu={active_menu}" target="_self" class="drawer-close">✕</a>
+                    <a href="?selected=&page={st.session_state.current_page}&tab={active_tab}&menu={active_menu}" target="_self" class="drawer-close">&times;</a>
                 </div>
                 
                 <div class="drawer-section-title">ENRICHMENT OUTPUT</div>
