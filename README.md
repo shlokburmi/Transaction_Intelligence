@@ -1,4 +1,4 @@
-#Transaction Intelligence Engine
+# Transaction Intelligence Engine
 
 A 4-tier hybrid AI system that takes messy bank card transaction descriptions and outputs the clean merchant name, spending category, and a deterministic confidence score. 
 
